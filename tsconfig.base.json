@@ -1,0 +1,30 @@
+{
+	"compilerOptions": {
+		/* Basic Options */
+		"target": "es5",
+		"module": "commonjs",
+		"lib": ["esnext"],
+		"declaration": true,
+		"declarationMap": true,
+		"removeComments": true,
+		"importHelpers": true,
+		"downlevelIteration": true,
+
+		/* Strict Type-Checking Options */
+		"strict": true,
+
+		/* Module Resolution Options */
+		"moduleResolution": "node",
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"resolveJsonModule": true,
+
+		/* Source Map Options */
+		"inlineSourceMap": true,
+		"inlineSources": true,
+
+		/* Experimental Options */
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true
+	}
+}
