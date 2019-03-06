@@ -1,0 +1,42 @@
+env:
+  es6: true
+parser: '@typescript-eslint/parser'
+parserOptions:
+  ecmaFeatures:
+    jsx: true
+  project: './tsconfig.json'
+  tsconfigRootDir: '.'
+plugins:
+  - '@typescript-eslint'
+extends: 'plugin:@typescript-eslint/recommended'
+rules:
+  indent:
+    - error
+    - tab
+  linebreak-style:
+    - error
+    - unix
+  quotes:
+    - error
+    - single
+  semi:
+    - error
+    - always
+  '@typescript-eslint/indent': off
+  '@typescript-eslint/member-delimiter-style':
+    - error
+    - multiline:
+        delimiter: comma
+        requireLast: false
+  '@typescript-eslint/no-empty-interface':
+    - warn
+    - allowSingleExtends: true
+  '@typescript-eslint/prefer-interface': off
+  '@typescript-eslint/explicit-function-return-type': off
+  '@typescript-eslint/no-explicit-any': off
+  '@typescript-eslint/explicit-member-accessibility': off
+  '@typescript-eslint/no-unused-vars':
+    - warn
+    - vars: all
+      args: after-used
+      ignoreRestSiblings: true
