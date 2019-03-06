@@ -2,16 +2,22 @@
   "name": "@fuktra/root",
   "private": true,
   "workspaces": [
+    "dispatch/*",
     "packages/*"
   ],
   "scripts": {
-    "lint": "eslint 'packages/**/*.ts'",
+    "bootstrap": "lerna bootstrap",
+    "clean-libs": "del '{dispatch,packages}/**/lib'",
+    "clean": "yarn clean-libs && lerna clean -y && lerna run clean && del node_modules",
+    "prepare": "lerna run prepare --no-private",
+    "lint": "eslint '{dispatch,packages}/**/*.ts'",
     "test": "lerna run --parallel test"
   },
   "devDependencies": {
     "@types/jest": "24.0.8",
     "@typescript-eslint/eslint-plugin": "1.4.2",
     "@typescript-eslint/parser": "1.4.2",
+    "del-cli": "1.1.0",
     "eslint": "5.15.0",
     "husky": "1.3.1",
     "jest": "24.1.0",
@@ -27,7 +33,10 @@
   },
   "lint-staged": {
     "linters": {
-      "*.ts": ["eslint --fix", "git add"]
+      "*.ts": [
+        "eslint --fix",
+        "git add"
+      ]
     }
   }
 }
