@@ -3,14 +3,14 @@
   "private": true,
   "workspaces": [
     "dispatch/*",
-    "packages/*"
+    "lib/*"
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "clean-libs": "del '{dispatch,packages}/**/lib'",
+    "clean-libs": "del '{dispatch,lib}/**/lib'",
     "clean": "yarn clean-libs && lerna clean -y && lerna run clean && del node_modules",
     "prepare": "lerna run prepare --no-private",
-    "lint": "eslint '{dispatch,packages}/**/*.ts'",
+    "lint": "eslint '{dispatch,lib}/**/*.ts'",
     "test": "lerna run --parallel test"
   },
   "devDependencies": {
