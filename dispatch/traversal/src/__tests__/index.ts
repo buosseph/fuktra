@@ -29,11 +29,21 @@ describe('Given an object', () => {
 		foo: { bar: { baz: () => 'baz' } }
 	};
 
-	it('throws on blacklisted property', () => {
-		const test = () => {
-			Array.from(dispatch(path('/getPrototypeOf'), OBJECT_SIMPLE));
-		};
-		expect(test).toThrowError('Attempted to dispatch on protected property');
+	it('does not resolve blacklisted property', () => {
+		const result = Array.from(dispatch(path('/foo/bar/getPrototypeOf'), OBJECT_SIMPLE));
+		expect(result.length).toEqual(3);
+
+		expect(result[0].path).toEqual(null);
+		expect(result[0].endpoint).toEqual(false);
+		expect(result[0].handler).toEqual(OBJECT_SIMPLE);
+
+		expect(result[1].path).toEqual('foo');
+		expect(result[1].endpoint).toEqual(false);
+		expect(result[1].handler).toEqual(OBJECT_SIMPLE.foo);
+
+		expect(result[2].path).toEqual('bar');
+		expect(result[2].endpoint).toEqual(true);
+		expect(result[2].handler).toEqual(OBJECT_SIMPLE.foo.bar);
 	});
 
 	it('resolves property', () => {
