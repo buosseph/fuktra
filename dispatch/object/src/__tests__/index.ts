@@ -2,352 +2,231 @@ import { Symbols } from '@fuktra/dispatch';
 import { dispatch } from '..';
 
 // E.g. "/foo/bar/baz" => ["foo", "bar", "baz"]
-const path = (path: string) => path.split('/').filter(value => value);
+const path = (path: string) => path.split('/').filter(value => value !== '');
 
-describe('Given a function', () => {
-	const FUNCTION = (...args: any[]) => `function /${args.join('/')}`;
+describe('Given an empty object', () => {
+	const EMPTY_OBJECT = {};
 
-	it('resolves root path', () => {
-		const result = Array.from(dispatch(path('/'), FUNCTION, null));
-		expect(result.length).toEqual(1); 
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(true);
-		expect(result[0].handler).toEqual(FUNCTION);
-	});
-
-	it('resolves deep path', () => {
-		const result = Array.from(dispatch(path('/foo/bar/baz'), FUNCTION, null));
-		expect(result.length).toEqual(1); 
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(true);
-		expect(result[0].handler).toEqual(FUNCTION);
-	});
-});
-
-describe('Given an object with functions', () => {
-	const OBJECT_SIMPLE = {
-		property: 'property',
-		foo: { bar: { baz: () => 'baz' } }
-	};
-
-	it('resolves property', () => {
-		const result = Array.from(dispatch(path('/property'), OBJECT_SIMPLE, null));
-		expect(result.length).toEqual(2);
-		
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(OBJECT_SIMPLE);
-
-		expect(result[1].path).toEqual('property');
-		expect(result[1].endpoint).toEqual(true);
-		expect(result[1].handler).toEqual(OBJECT_SIMPLE.property);
-	});
-
-	it('resolves shallow path', () => {
-		const result = Array.from(dispatch(path('/foo'), OBJECT_SIMPLE, null));
-		expect(result.length).toEqual(2);
-		
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(OBJECT_SIMPLE);
-
-		expect(result[1].path).toEqual('foo');
-		expect(result[1].endpoint).toEqual(true);
-		expect(result[1].handler).toEqual(OBJECT_SIMPLE.foo);
-	});
-
-	it('resolves deep path', () => {
-		const result = Array.from(dispatch(path('/foo/bar'), OBJECT_SIMPLE, null));
-		expect(result.length).toEqual(3);
-		
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(OBJECT_SIMPLE);
-
-		expect(result[1].path).toEqual('foo');
-		expect(result[1].endpoint).toEqual(false);
-		expect(result[1].handler).toEqual(OBJECT_SIMPLE.foo);
-
-		expect(result[2].path).toEqual('bar');
-		expect(result[2].endpoint).toEqual(true);
-		expect(result[2].handler).toEqual(OBJECT_SIMPLE.foo.bar);
-	});
-
-	it('resolves incomplete deep path', () => {
-		const result = Array.from(dispatch(path('/foo/bar/diz'), OBJECT_SIMPLE, null));
-		expect(result.length).toEqual(3);
-		
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(OBJECT_SIMPLE);
-
-		expect(result[1].path).toEqual('foo');
-		expect(result[1].endpoint).toEqual(false);
-		expect(result[1].handler).toEqual(OBJECT_SIMPLE.foo);
-
-		expect(result[2].path).toEqual('bar');
-		expect(result[2].endpoint).toEqual(false);
-		expect(result[2].handler).toEqual(OBJECT_SIMPLE.foo.bar);
-	});
-
-	it('resolves deep path with callable', () => {
-		const result = Array.from(dispatch(path('/foo/bar/baz'), OBJECT_SIMPLE, null));
-		expect(result.length).toEqual(4);
-		
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(OBJECT_SIMPLE);
-
-		expect(result[1].path).toEqual('foo');
-		expect(result[1].endpoint).toEqual(false);
-		expect(result[1].handler).toEqual(OBJECT_SIMPLE.foo);
-
-		expect(result[2].path).toEqual('bar');
-		expect(result[2].endpoint).toEqual(false);
-		expect(result[2].handler).toEqual(OBJECT_SIMPLE.foo.bar);
-
-		expect(result[3].path).toEqual('baz');
-		expect(result[3].endpoint).toEqual(true);
-		expect(result[3].handler).toEqual(OBJECT_SIMPLE.foo.bar.baz);
-	});
-});
-
-describe('Given an object with protocol', () => {
-	const bar = () => 'bar'; // Workaround TS not liking Symbols as keys
-	const OBJECT_PROTOCOL_DEEP = {
-		foo: {
-			bar: {
-				[Symbols.dispatch]: bar
-			}
-		}
-	};
-
-	it('resolves shallow path', () => {
-		const result = Array.from(dispatch(path('/foo'), OBJECT_PROTOCOL_DEEP, null));
-		expect(result.length).toEqual(2);
-		
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(OBJECT_PROTOCOL_DEEP);
-
-		expect(result[1].path).toEqual('foo');
-		expect(result[1].endpoint).toEqual(true);
-		expect(result[1].handler).toEqual(OBJECT_PROTOCOL_DEEP.foo);
-	});
-
-	it('resolves deep path', () => {
-		const result = Array.from(dispatch(path('/foo/bar'), OBJECT_PROTOCOL_DEEP, null));
-		expect(result.length).toEqual(3);
-		
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(OBJECT_PROTOCOL_DEEP);
-
-		expect(result[1].path).toEqual('foo');
-		expect(result[1].endpoint).toEqual(false);
-		expect(result[1].handler).toEqual(OBJECT_PROTOCOL_DEEP.foo);
-
-		expect(result[2].path).toEqual('bar');
-		expect(result[2].endpoint).toEqual(true);
-		expect(result[2].handler).toEqual(bar);
-	});
-
-	it('resolves incomplete deep path', () => {
-		const result = Array.from(dispatch(path('/foo/diz'), OBJECT_PROTOCOL_DEEP, null));
-		expect(result.length).toEqual(2);
-		
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(OBJECT_PROTOCOL_DEEP);
-
-		expect(result[1].path).toEqual('foo');
-		expect(result[1].endpoint).toEqual(false);
-		expect(result[1].handler).toEqual(OBJECT_PROTOCOL_DEEP.foo);
-	});
-
-	it('resolves deep path beyond endpoint', () => {
-		const result = Array.from(dispatch(path('/foo/bar/baz'), OBJECT_PROTOCOL_DEEP, null));
-		expect(result.length).toEqual(3);
-		
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(OBJECT_PROTOCOL_DEEP);
-
-		expect(result[1].path).toEqual('foo');
-		expect(result[1].endpoint).toEqual(false);
-		expect(result[1].handler).toEqual(OBJECT_PROTOCOL_DEEP.foo);
-
-		expect(result[2].path).toEqual('bar');
-		expect(result[2].endpoint).toEqual(true);
-		expect(result[2].handler).toEqual(bar);
-	});
-});
-
-describe('Given an object with functions and protocol', () => {
-	const root = () => 'root'; // Workaround TS not liking Symbols as keys
-	const CALLABLE_DEEP = {
-		[Symbols.dispatch]: root,
-		foo: {
-			bar: {
-				baz: () => 'baz'
-			}
-		}
-	};
-
-	it('resolves root path to protocol', () => {
-		const result = Array.from(dispatch(path('/'), CALLABLE_DEEP, null));
+	it('resolves incomplete path', () => {
+		const result = Array.from(dispatch(path('/foo'), EMPTY_OBJECT));
 		expect(result.length).toEqual(1);
-		
+
+		expect(result[0].path).toEqual(null);
+		expect(result[0].endpoint).toEqual(false);
+		expect(result[0].handler).toEqual(EMPTY_OBJECT);
+	});
+
+	it('resolves insecure path', () => {
+		const result = Array.from(dispatch(path('/hasOwnProperty'), EMPTY_OBJECT));
+		expect(result.length).toEqual(1);
+
+		expect(result[0].path).toEqual(null);
+		expect(result[0].endpoint).toEqual(false);
+		expect(result[0].handler).toEqual(EMPTY_OBJECT);
+	});
+});
+
+describe('Given a shallow object', () => {
+	const SHALLOW_OBJECT = {
+		[Symbols.dispatch]: 'root',
+		foo: 'foo',
+		bar: () => 'bar'
+	};
+
+	it('resolves insecure path', () => {
+		const result = Array.from(dispatch(path('/hasOwnProperty'), SHALLOW_OBJECT));
+		expect(result.length).toEqual(1);
+
 		expect(result[0].path).toEqual(null);
 		expect(result[0].endpoint).toEqual(true);
-		expect(result[0].handler).toEqual(root);
+		expect(result[0].handler).toEqual(Reflect.get(SHALLOW_OBJECT, Symbols.dispatch));
 	});
 
-	it('resolves shallow path', () => {
-		const result = Array.from(dispatch(path('/foo'), CALLABLE_DEEP, null));
-		expect(result.length).toEqual(2);
-		
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(CALLABLE_DEEP);
+	describe('resolves shallow path', () => {
+		it('to dispatch symbol', () => {
+			const result = Array.from(dispatch(path('/'), SHALLOW_OBJECT));
+			expect(result.length).toEqual(1);
 
-		expect(result[1].path).toEqual('foo');
-		expect(result[1].endpoint).toEqual(true);
-		expect(result[1].handler).toEqual(CALLABLE_DEEP.foo);
-	});
+			expect(result[0].path).toEqual(null);
+			expect(result[0].endpoint).toEqual(true);
+			expect(result[0].handler).toEqual(Reflect.get(SHALLOW_OBJECT, Symbols.dispatch));
+		});
 
-	it('resolves deep path to object', () => {
-		const result = Array.from(dispatch(path('/foo/bar'), CALLABLE_DEEP, null));
-		expect(result.length).toEqual(3);
-		
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(CALLABLE_DEEP);
+		it('to static property', () => {
+			const result = Array.from(dispatch(path('/foo'), SHALLOW_OBJECT));
+			expect(result.length).toEqual(2);
 
-		expect(result[1].path).toEqual('foo');
-		expect(result[1].endpoint).toEqual(false);
-		expect(result[1].handler).toEqual(CALLABLE_DEEP.foo);
+			expect(result[0].path).toEqual(null);
+			expect(result[0].endpoint).toEqual(false);
+			expect(result[0].handler).toEqual(SHALLOW_OBJECT);
 
-		expect(result[2].path).toEqual('bar');
-		expect(result[2].endpoint).toEqual(true);
-		expect(result[2].handler).toEqual(CALLABLE_DEEP.foo.bar);
+			expect(result[1].path).toEqual('foo');
+			expect(result[1].endpoint).toEqual(true);
+			expect(result[1].handler).toEqual(SHALLOW_OBJECT.foo);
+		});
+
+		it('to function property', () => {
+			const result = Array.from(dispatch(path('/bar'), SHALLOW_OBJECT));
+			expect(result.length).toEqual(2);
+
+			expect(result[0].path).toEqual(null);
+			expect(result[0].endpoint).toEqual(false);
+			expect(result[0].handler).toEqual(SHALLOW_OBJECT);
+
+			expect(result[1].path).toEqual('bar');
+			expect(result[1].endpoint).toEqual(true);
+			expect(result[1].handler).toEqual(SHALLOW_OBJECT.bar);
+		});
 	});
 
 	it('resolves incomplete path', () => {
-		const result = Array.from(dispatch(path('/foo/diz'), CALLABLE_DEEP, null));
-		expect(result.length).toEqual(2);
-		
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(CALLABLE_DEEP);
+		const result = Array.from(dispatch(path('/diz'), SHALLOW_OBJECT, null));
+		expect(result.length).toEqual(1);
 
-		expect(result[1].path).toEqual('foo');
-		expect(result[1].endpoint).toEqual(false);
-		expect(result[1].handler).toEqual(CALLABLE_DEEP.foo);
+		expect(result[0].path).toEqual(null);
+		expect(result[0].endpoint).toEqual(true);
+		expect(result[0].handler).toEqual(Reflect.get(SHALLOW_OBJECT, Symbols.dispatch));
 	});
 
-	it('resolves deep path beyond endpoint', () => {
-		const result = Array.from(dispatch(path('/foo/bar/baz'), CALLABLE_DEEP, null));
-		expect(result.length).toEqual(4);
-		
+	it('resolves path beyond endpoint', () => {
+		const result = Array.from(dispatch(path('/foo/diz'), SHALLOW_OBJECT, null));
+		expect(result.length).toEqual(2);
+	
 		expect(result[0].path).toEqual(null);
 		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(CALLABLE_DEEP);
+		expect(result[0].handler).toEqual(SHALLOW_OBJECT);
 
 		expect(result[1].path).toEqual('foo');
-		expect(result[1].endpoint).toEqual(false);
-		expect(result[1].handler).toEqual(CALLABLE_DEEP.foo);
-
-		expect(result[2].path).toEqual('bar');
-		expect(result[2].endpoint).toEqual(false);
-		expect(result[2].handler).toEqual(CALLABLE_DEEP.foo.bar);
-
-		expect(result[3].path).toEqual('baz');
-		expect(result[3].endpoint).toEqual(true);
-		expect(result[3].handler()).toEqual('baz');
+		expect(result[1].endpoint).toEqual(true);
+		expect(result[1].handler).toEqual(SHALLOW_OBJECT.foo);
 	});
 });
 
-describe('Given a mixed object', () => {
-	const MIXED = {
-		[Symbols.dispatch]: () => 'root',
+describe('Given a deep object', () => {
+	const DEEP_OBJECT = {
 		foo: {
 			bar: {
-				baz: () => 'baz'
+				[Symbols.dispatch]: () => 'bar',
+				baz: 'baz',
+				qux: () => 'qux'
 			}
 		}
 	};
 
-	it('resolves root path', () => {
-		const result = Array.from(dispatch(path('/'), MIXED, null));
+	it('resolves insecure path', () => {
+		const result = Array.from(dispatch(path('/hasOwnProperty'), DEEP_OBJECT));
 		expect(result.length).toEqual(1);
-		
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(true);
-		expect(result[0].handler).toEqual((MIXED as any)[Symbols.dispatch]);
-	});
 
-	it('resolves shallow path', () => {
-		const result = Array.from(dispatch(path('/foo'), MIXED, null));
-		expect(result.length).toEqual(2);
-		
 		expect(result[0].path).toEqual(null);
 		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(MIXED);
+		expect(result[0].handler).toEqual(DEEP_OBJECT);
+	});
+
+	it('resolves a shallow path', () => {
+		const result = Array.from(dispatch(path('/foo'), DEEP_OBJECT));
+		expect(result.length).toEqual(2);
+
+		expect(result[0].path).toEqual(null);
+		expect(result[0].endpoint).toEqual(false);
+		expect(result[0].handler).toEqual(DEEP_OBJECT);
 
 		expect(result[1].path).toEqual('foo');
 		expect(result[1].endpoint).toEqual(true);
-		expect(result[1].handler).toEqual(MIXED.foo);
+		expect(result[1].handler).toEqual(DEEP_OBJECT.foo);
 	});
 
-	it('resolves deep path', () => {
-		const result = Array.from(dispatch(path('/foo/bar'), MIXED, null));
-		expect(result.length).toEqual(3);
-		
-		expect(result[0].path).toEqual(null);
-		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(MIXED);
+	describe('resolves a deep path', () => {
+		it('to dispatch symbol', () => {
+			const result = Array.from(dispatch(path('/foo/bar'), DEEP_OBJECT));
+			expect(result.length).toEqual(3);
 
-		expect(result[1].path).toEqual('foo');
-		expect(result[1].endpoint).toEqual(false);
-		expect(result[1].handler).toEqual(MIXED.foo);
+			expect(result[0].path).toEqual(null);
+			expect(result[0].endpoint).toEqual(false);
+			expect(result[0].handler).toEqual(DEEP_OBJECT);
 
-		expect(result[2].path).toEqual('bar');
-		expect(result[2].endpoint).toEqual(true);
-		expect(result[2].handler).toEqual(MIXED.foo.bar);
+			expect(result[1].path).toEqual('foo');
+			expect(result[1].endpoint).toEqual(false);
+			expect(result[1].handler).toEqual(DEEP_OBJECT.foo);
+
+			expect(result[2].path).toEqual('bar');
+			expect(result[2].endpoint).toEqual(true);
+			expect(result[2].handler).toEqual(Reflect.get(DEEP_OBJECT.foo.bar, Symbols.dispatch));
+		});
+
+		it('to static property', () => {
+			const result = Array.from(dispatch(path('/foo/bar/baz'), DEEP_OBJECT));
+			expect(result.length).toEqual(4);
+
+			expect(result[0].path).toEqual(null);
+			expect(result[0].endpoint).toEqual(false);
+			expect(result[0].handler).toEqual(DEEP_OBJECT);
+
+			expect(result[1].path).toEqual('foo');
+			expect(result[1].endpoint).toEqual(false);
+			expect(result[1].handler).toEqual(DEEP_OBJECT.foo);
+
+			expect(result[2].path).toEqual('bar');
+			expect(result[2].endpoint).toEqual(false);
+			expect(result[2].handler).toEqual(DEEP_OBJECT.foo.bar);
+
+			expect(result[3].path).toEqual('baz');
+			expect(result[3].endpoint).toEqual(true);
+			expect(result[3].handler).toEqual(DEEP_OBJECT.foo.bar.baz);
+		});
+
+		it('to function property', () => {
+			const result = Array.from(dispatch(path('/foo/bar/qux'), DEEP_OBJECT));
+			expect(result.length).toEqual(4);
+
+			expect(result[0].path).toEqual(null);
+			expect(result[0].endpoint).toEqual(false);
+			expect(result[0].handler).toEqual(DEEP_OBJECT);
+
+			expect(result[1].path).toEqual('foo');
+			expect(result[1].endpoint).toEqual(false);
+			expect(result[1].handler).toEqual(DEEP_OBJECT.foo);
+
+			expect(result[2].path).toEqual('bar');
+			expect(result[2].endpoint).toEqual(false);
+			expect(result[2].handler).toEqual(DEEP_OBJECT.foo.bar);
+
+			expect(result[3].path).toEqual('qux');
+			expect(result[3].endpoint).toEqual(true);
+			expect(result[3].handler).toEqual(DEEP_OBJECT.foo.bar.qux);
+		});
 	});
 
-	it('resolves incomplete deep path', () => {
-		const result = Array.from(dispatch(path('/foo/diz'), MIXED, null));
+	it('resolves incomplete path', () => {
+		const result = Array.from(dispatch(path('/foo/diz'), DEEP_OBJECT, null));
 		expect(result.length).toEqual(2);
-		
+
 		expect(result[0].path).toEqual(null);
 		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(MIXED);
+		expect(result[0].handler).toEqual(DEEP_OBJECT);
 
 		expect(result[1].path).toEqual('foo');
 		expect(result[1].endpoint).toEqual(false);
-		expect(result[1].handler).toEqual(MIXED.foo);
+		expect(result[1].handler).toEqual(DEEP_OBJECT.foo);
 	});
 
-	it('resolves deep path beyond endpoint', () => {
-		const result = Array.from(dispatch(path('/foo/bar/baz'), MIXED, null));
+	it('resolves path beyond endpoint', () => {
+		const result = Array.from(dispatch(path('/foo/bar/baz/qux'), DEEP_OBJECT, null));
 		expect(result.length).toEqual(4);
 		
 		expect(result[0].path).toEqual(null);
 		expect(result[0].endpoint).toEqual(false);
-		expect(result[0].handler).toEqual(MIXED);
+		expect(result[0].handler).toEqual(DEEP_OBJECT);
 
 		expect(result[1].path).toEqual('foo');
 		expect(result[1].endpoint).toEqual(false);
-		expect(result[1].handler).toEqual(MIXED.foo);
+		expect(result[1].handler).toEqual(DEEP_OBJECT.foo);
 
 		expect(result[2].path).toEqual('bar');
 		expect(result[2].endpoint).toEqual(false);
-		expect(result[2].handler).toEqual(MIXED.foo.bar);
+		expect(result[2].handler).toEqual(DEEP_OBJECT.foo.bar);
 
 		expect(result[3].path).toEqual('baz');
 		expect(result[3].endpoint).toEqual(true);
-		expect(result[3].handler).toEqual(MIXED.foo.bar.baz);
+		expect(result[3].handler).toEqual(DEEP_OBJECT.foo.bar.baz);
 	});
 });
