@@ -1,10 +1,8 @@
 import { peek } from '..';
 
-// E.g. "/foo/bar/baz" => ["foo", "bar", "baz"]
-const path = (path: string) => path.split('/');
-
 describe('peek', () => {
 	it('handles empty path', () => {
+		// '/' => []
 		expect(Array.from(peek([])).length).toEqual(0);
 	});
 
@@ -16,13 +14,15 @@ describe('peek', () => {
 	});
 
 	it('handles tailing slashes', () => {
-		expect(Array.from(peek(path('foo///'))).length).toEqual(1);
+		// '/foo///' => ['foo', '', '']
+		expect(Array.from(peek(['foo', '', ''])).length).toEqual(1);
 	});
 
 	it('returns previous path element', () => {
-		const result = Array.from(peek(['a', 'b']));
+		// '/foo/bar' => ['foo', 'bar']
+		const result = Array.from(peek(['foo', 'bar']));
 		expect(result.length).toEqual(2); 
-		expect(result[0]).toEqual([null, 'a']);
-		expect(result[1]).toEqual(['a', 'b']);
+		expect(result[0]).toEqual([null, 'foo']);
+		expect(result[1]).toEqual(['foo', 'bar']);
 	});
 });
