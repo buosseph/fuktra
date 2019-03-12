@@ -11,22 +11,23 @@ export const dispatch: DispatcherIter<Crumb> = function*(path, obj) {
 	const dispatcher = this;
 	const origin = obj;
 
+	const hasOwnProperty = (obj: any, key: string | symbol) => {
+		try {
+			// Look up key in object own properties
+			return Reflect.ownKeys(obj).includes(key);
+		}
+		catch (error) {
+			// Attempted to use Reflect on a non-Object target type
+			return false;
+		}
+	};
+
 	// Gets the objects own properties and symbols, while
 	// handling the case where the given `obj` is not an `Object`.
 	const getProperty = (obj: any, key: string): any => {
-		let exists: boolean;
-		try {
-			exists = Reflect.ownKeys(obj).includes(key);
-		}
-		catch (error) {
-			// Attempted to use Reflect on a non-Object target type,
-			// i.e. string, number, symbol
-			exists = false;
-		}
-
-		return exists
-			? Reflect.get(obj, key)
-			: undefined;
+		// Find property in object, ignore its prototype chain
+		const exists: boolean = hasOwnProperty(obj, key);
+		return exists ? Reflect.get(obj, key) : undefined;
 	};
 
 	let current: string | null = null;
@@ -50,8 +51,8 @@ export const dispatch: DispatcherIter<Crumb> = function*(path, obj) {
 		// If the current `obj` is callable, by including a value keyed using
 		// `Symbols.dispatch`, then return the value as the endpoint handler.
 
-		const isCallableObject: boolean = (obj as Record<string, any>).hasOwnProperty(Symbols.dispatch);
-		const handler = isCallableObject ? obj[Symbols.dispatch] : obj;
+		const isCallableObject: boolean = hasOwnProperty(obj, Symbols.dispatch);
+		const handler = isCallableObject ? Reflect.get(obj, Symbols.dispatch) : obj;
 
 		yield { dispatcher, origin, path: current, endpoint: true, handler };
 
@@ -68,11 +69,11 @@ export const dispatch: DispatcherIter<Crumb> = function*(path, obj) {
 	// Because `path` is not consumed completely, further dispatch may be possible with
 	// another dispatcher, but that is not a concern here.
 
-	const isCallableObject: boolean = (obj as Record<string, any>).hasOwnProperty(Symbols.dispatch);
-	const isCallable: boolean = isCallableObject || !(obj instanceof Object);
+	const isCallableObject: boolean = hasOwnProperty(obj, Symbols.dispatch);
+	const isCallable: boolean = isCallableObject || obj instanceof Function || !(obj instanceof Object);
 
 	if (isCallable) {
-		const handler = isCallableObject ? obj[Symbols.dispatch] : obj;
+		const handler = isCallableObject ? Reflect.get(obj, Symbols.dispatch) : obj;
 		yield { dispatcher, origin, path: previous, endpoint: true, handler };
 	}
 	else {
