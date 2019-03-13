@@ -1,0 +1,30 @@
+{
+  "name": "@fuktra/core",
+  "version": "0.0.0",
+  "author": "Brian Uosseph <brian.uosseph@gmail.com>",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/buosseph/fuktra.git"
+  },
+  "bugs": {
+    "url": "https://github.com/buosseph/fuktra/issues"
+  },
+  "scripts": {
+    "test": "jest --coverage",
+    "prepare": "tsc -b",
+    "clean": "del lib node_modules"
+  },
+  "dependencies": {
+    "kuspe": "https://github.com/buosseph/kuspe"
+  },
+  "devDependencies": {
+    "@types/jest": "24.0.9",
+    "del-cli": "1.1.0",
+    "jest": "24.1.0",
+    "ts-jest": "24.0.0",
+    "typescript": "3.3.3333"
+  }
+}
