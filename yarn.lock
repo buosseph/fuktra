@@ -4612,9 +4612,10 @@ kleur@^3.0.2:
   resolved "https://registry.yarnpkg.com/kleur/-/kleur-3.0.2.tgz#83c7ec858a41098b613d5998a7b653962b504f68"
   integrity sha512-3h7B2WRT5LNXOtQiAaWonilegHcPSf9nLVXlSTci8lu1dZUuui61+EsPEZqSVxY7rXYmB2DVKMQILxaO5WL61Q==
 
-"kuspe@https://github.com/buosseph/kuspe":
-  version "0.0.0"
-  resolved "https://github.com/buosseph/kuspe#dae33059186182338dbe4b63b5b9f2e084a78f7b"
+kuspe@~0.1.0-alpha.1:
+  version "0.1.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/kuspe/-/kuspe-0.1.0-alpha.1.tgz#682b00506d9549f14948402b8d16b306326d8875"
+  integrity sha512-jIAJZarcfBrzFZn2HgZ6tLR9mStfH/Zxsw64jwJJPSr6E5e+jXYGfyv2u+w9T2xl3puHB6RJT3LqlT/fxZ5TEw==
 
 latest-version@^3.0.0:
   version "3.1.0"
