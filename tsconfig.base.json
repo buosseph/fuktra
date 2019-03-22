@@ -26,6 +26,14 @@
 
 		/* Experimental Options */
 		"experimentalDecorators": true,
-		"emitDecoratorMetadata": true
+		"emitDecoratorMetadata": true,
+
+		"baseUrl": ".",
+		"paths": {
+			"@fuktra/dispatch": ["dispatch/core/src"],
+			"@fuktra/dispatch-object": ["dispatch/object/src"],
+			"@fuktra/dispatch-traversal": ["dispatch/traversal/src"],
+			"@fuktra/core": ["lib/core/src"]
+		}
 	}
 }
