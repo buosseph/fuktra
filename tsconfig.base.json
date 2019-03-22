@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		/* Basic Options */
-		"target": "es5",
+		"target": "es2015",
 		"module": "commonjs",
 		"lib": ["esnext"],
 		"declaration": true,
@@ -9,6 +9,7 @@
 		"removeComments": true,
 		"importHelpers": true,
 		"downlevelIteration": true,
+		"skipLibCheck": true,
 
 		/* Strict Type-Checking Options */
 		"strict": true,

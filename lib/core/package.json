@@ -5,17 +5,11 @@
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/buosseph/fuktra.git"
-  },
-  "bugs": {
-    "url": "https://github.com/buosseph/fuktra/issues"
-  },
   "scripts": {
     "test": "jest --coverage",
     "prepare": "tsc -b",
-    "clean": "del lib node_modules",
+    "clean:lib": "del lib",
+    "clean": "yarn clean:lib && del node_modules",
     "start": "ts-node src/index.ts"
   },
   "dependencies": {
@@ -23,6 +17,7 @@
   },
   "devDependencies": {
     "@types/jest": "24.0.9",
+    "@types/node": "11.11.5",
     "del-cli": "1.1.0",
     "jest": "24.1.0",
     "ts-jest": "24.0.0",

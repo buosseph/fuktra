@@ -1,0 +1,10 @@
+{
+	"extends": "./tsconfig.base.json",
+	"files": [],
+	"references": [
+		{ "path": "dispatch/core" },
+		{ "path": "dispatch/object" },
+		{ "path": "dispatch/traversal" },
+		{ "path": "lib/core" }
+	]
+}
