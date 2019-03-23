@@ -1,4 +1,5 @@
 import http from 'http';
+import Url from 'url';
 
 import { ApplicationContext, RequestContext } from './context';
 import { dispatch } from './dispatch';
@@ -59,6 +60,8 @@ export class Application {
 	private respond: http.RequestListener = (request, response) => {
 		if (!request.url) throw new Error('Request did not provide path');
 
+		const { pathname = '' } = Url.parse(request.url, true);
+
 		this.context.set('request', request);
 		this.context.set('response', response);
 
@@ -73,7 +76,7 @@ export class Application {
 		extensions.prepare(this.context);
 		extensions.before(this.context);
 
-		const { isEndpoint, handler } = dispatch(request.url, root, this.context);
+		const { isEndpoint, handler } = dispatch(pathname, root, this.context);
 
 		if (!isEndpoint) {
 			console.log('Dispatch failed, responding with HTTP 404 Not Found');
