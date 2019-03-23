@@ -6,12 +6,13 @@
 		"composite": true
 	},
 	"references": [
-    { "path": "../core" }
-  ],
+		{ "path": "../core" }
+	],
 	"include": [
 		"src"
 	],
 	"exclude": [
+		"node_modules",
 		"src/**/__tests__"
 	]
 }
