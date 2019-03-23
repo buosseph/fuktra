@@ -1,19 +1,19 @@
 import { ExtensionManager, Extension as BaseExtension } from 'kuspe';
 
 import { Application } from './application';
-import { Context } from './context';
+import { ApplicationContext } from './context';
 
 export interface Extension extends BaseExtension {
-	start?: (context: Context) => void,
-	prepare?: (context: Context) => void,
-	before?: (context: Context) => void,
-	run?: (context: Context) => void,
-	after?: (context: Context) => void,
-	stop?: (context: Context) => void
+	start?: (context: ApplicationContext) => void,
+	prepare?: (context: ApplicationContext) => void,
+	before?: (context: ApplicationContext) => void,
+	run?: (context: ApplicationContext) => void,
+	after?: (context: ApplicationContext) => void,
+	stop?: (context: ApplicationContext) => void
 }
 
 export type SignalType = 'start' | 'prepare' | 'before' | 'run' | 'after' | 'stop';
-export type SignalHandler = (context: Context) => void;
+export type SignalHandler = (context: ApplicationContext) => void;
 
 type SignalHandlers = { [Name in SignalType]: SignalHandler[] };
 
@@ -34,7 +34,7 @@ export class Extensions extends ExtensionManager<Extension> {
 	/** All signal callbacks provided by extensions */
 	public signals: SignalHandlers;
 
-	public constructor(context: Context<Application>) {
+	public constructor(context: ApplicationContext<Application>) {
 		super();
 
 		// Register configured extensions from Context
@@ -67,37 +67,37 @@ export class Extensions extends ExtensionManager<Extension> {
 		}
 	}
 
-	public start(context: Context) {
+	public start(context: ApplicationContext) {
 		for (const handler of this.signals.start) {
 			handler(context);
 		}
 	}
 
-	public prepare(context: Context) {
+	public prepare(context: ApplicationContext) {
 		for (const handler of this.signals.prepare) {
 			handler(context);
 		}
 	}
 
-	public before(context: Context) {
+	public before(context: ApplicationContext) {
 		for (const handler of this.signals.before) {
 			handler(context);
 		}
 	}
 
-	public run(context: Context) {
+	public run(context: ApplicationContext) {
 		for (const handler of this.signals.run) {
 			handler(context);
 		}
 	}
 
-	public after(context: Context) {
+	public after(context: ApplicationContext) {
 		for (const handler of this.signals.after) {
 			handler(context);
 		}
 	}
 
-	public stop(context: Context) {
+	public stop(context: ApplicationContext) {
 		for (const handler of this.signals.stop) {
 			handler(context);
 		}

@@ -1,13 +1,8 @@
 import http from 'http';
 
-import { Context } from './context';
+import { ApplicationContext, RequestContext } from './context';
 import { dispatch } from './dispatch';
 import { Extension, Extensions } from './extensions';
-
-export type RequestContext = {
-	request: http.IncomingMessage,
-	response: http.ServerResponse
-};
 
 export type Endpoint = (context: RequestContext) => any; // Writable chunk = Buffer | string
 
@@ -21,7 +16,7 @@ export interface AppServerConfig {
 
 export class Application {
 	public config: ApplicationConfig;
-	private context: Context;
+	private context: ApplicationContext;
 
 	private configure = (config: ApplicationConfig): ApplicationConfig => {
 		const { extensions = [] } = config;
@@ -35,7 +30,7 @@ export class Application {
 	 */
 	public constructor(root: any, config: ApplicationConfig = {}) {
 		this.config = this.configure(config);
-		this.context = new Map();
+		this.context = new Map<string, any>();
 
 		this.context.set('app', this);
 		this.context.set('root', root);
@@ -69,7 +64,7 @@ export class Application {
 
 		const context: RequestContext = { request, response };
 
-		const extensions = (this.context as Context<Extensions>).get('extensions');
+		const extensions = (this.context as ApplicationContext<Extensions>).get('extensions');
 		if (!extensions) throw new Error('Extensions missing');
 
 		const root = this.context.get('root');

@@ -1,3 +1,8 @@
-export type Context<V = any> = Map<string, V>;
+import http from 'http';
 
-export default Context;
+export type ApplicationContext<V = any> = Map<string, V>;
+
+export type RequestContext = {
+	request: http.IncomingMessage,
+	response: http.ServerResponse
+};
