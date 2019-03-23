@@ -1,0 +1,17 @@
+{
+	"name": "object-dispatch",
+	"version": "0.0.0",
+	"private": true,
+	"author": "Brian Uosseph <brian.uosseph@gmail.com>",
+	"license": "MIT",
+	"scripts": {
+		"start": "ts-node src/index.ts"
+	},
+	"devDependencies": {
+		"@types/node": "11.11.4",
+		"jest": "24.5.0",
+		"ts-jest": "24.0.0",
+		"ts-node": "8.0.2",
+		"typescript": "3.3.4000"
+	}
+}
