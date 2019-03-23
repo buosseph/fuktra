@@ -1,5 +1,6 @@
-import http from 'http';
+import Http from 'http';
 import Url from 'url';
+import Querystring from 'querystring';
 
 import { ApplicationContext, RequestContext } from './context';
 import { dispatch } from './dispatch';
@@ -57,15 +58,41 @@ export class Application {
 		}
 	}
 
-	private respond: http.RequestListener = (request, response) => {
-		if (!request.url) throw new Error('Request did not provide path');
+	private arguments = (context: RequestContext) => {
+		// 1. Request context is first positional argument
+		let args: any[] = [ context ];
 
-		const { pathname = '' } = Url.parse(request.url, true);
+		// 2. Remaining path elements are the following positional arguments
+		// TODO: Track unconsumed path elements
+
+		const { request: { headers, method }, query = '', body = '' } = context;
+		let parameters = {};
+
+		// 3. Query string values are merged into parameters object
+		if (method === 'GET') {
+			parameters = { ...Querystring.parse(query) };
+		}
+
+		// 4. Form-encoded or MIME multipart arguments are merged into parameters object
+		if (method === 'POST' && headers['content-type'] === 'multipart/form-data') {
+			parameters = { ...parameters, ...Querystring.parse(body) };
+		}
+
+		// 5. JSON-encoded arguments in the request body are merged into parameters object
+		if (headers['content-type'] === 'application/json') {
+			parameters = { ...parameters, ...JSON.parse(body) };
+		}
+
+		args = [ ...args, parameters ];
+
+		console.log(args);
+	};
+
+	private respond = (context: RequestContext) => {
+		const { path, request, response } = context;
 
 		this.context.set('request', request);
 		this.context.set('response', response);
-
-		const context: RequestContext = { request, response };
 
 		const extensions = (this.context as ApplicationContext<Extensions>).get('extensions');
 		if (!extensions) throw new Error('Extensions missing');
@@ -76,7 +103,8 @@ export class Application {
 		extensions.prepare(this.context);
 		extensions.before(this.context);
 
-		const { isEndpoint, handler } = dispatch(pathname, root, this.context);
+		const args = this.arguments(context); // TODO: Track unconsumed path elements
+		const { isEndpoint, handler } = dispatch(path, root, this.context);
 
 		if (!isEndpoint) {
 			console.log('Dispatch failed, responding with HTTP 404 Not Found');
@@ -116,16 +144,28 @@ export class Application {
 	/**
 	 * Dispatches a request, response pair
 	 */
-	private handle: http.RequestListener = (request, response) => {
+	private handle: Http.RequestListener = (request, response) => {
 		let buffer: any[] = [];
 		request
 			.on('error', error => console.error(error.stack))
 			.on('data', chunk => buffer.push(chunk))
 			.on('end', () => {
-				const body = Buffer.concat(buffer).toString();
-				// Do something...
 				response.on('error', error => console.error(error.stack));
-				this.respond(request, response);
+
+				if (!request.url) throw new Error('Request did not provide path');
+
+				const { pathname = '', query } = Url.parse(request.url);
+				const body = Buffer.concat(buffer).toString();
+
+				const context: RequestContext = {
+					request,
+					response,
+					path: pathname,
+					query: query || '',
+					body
+				};
+
+				this.respond(context);
 			});
 	};
 
@@ -135,7 +175,7 @@ export class Application {
 	public listen(config: AppServerConfig = {}) {
 		const { port } = config;
 
-		const server = http.createServer(this.handle)
+		const server = Http.createServer(this.handle)
 			.on('close', () => {
 				console.log('Closing server...');
 			})
