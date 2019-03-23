@@ -8,8 +8,8 @@
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "clean-libs": "del '{dispatch,lib}/**/lib'",
-    "clean": "yarn clean-libs && lerna clean -y && lerna run clean && del node_modules",
+    "clean:lib": "del '{dispatch,lib}/**/lib'",
+    "clean": "yarn clean:lib && lerna clean -y && lerna run clean && del node_modules",
     "prepare": "lerna run prepare --no-private",
     "lint": "eslint '{dispatch,lib}/**/*.ts'",
     "test": "lerna run --parallel test"
