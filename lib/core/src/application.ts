@@ -43,42 +43,45 @@ export class Application {
 		const extensions = new Extensions(this.context);
 		this.context.set('extensions', extensions);
 
-		this.context.set('dispatch', dispatch);
-
 		extensions.start(this.context);
 	}
 
-	private execute = (context: RequestContext, endpoint: Endpoint) => {
+	private execute = (context: RequestContext, endpoint: any) => {
+		// Endpoints can be functions or primitive values that can be cast into strings for a response.
 		const isCallable = endpoint instanceof Function;
 		if (!isCallable) return endpoint; // To be written into response
 
 		try {
-			return endpoint(context);
+			return (endpoint as Endpoint)(context);
 		}
 		catch (error) {
+			console.error('Error thrown while executing endpoint');
 			// TODO: Throw 500 error type
 			throw error;
 		}
 	}
 
 	private respond: http.RequestListener = (request, response) => {
+		if (!request.url) throw new Error('Request did not provide path');
+
+		this.context.set('request', request);
+		this.context.set('response', response);
+
 		const context: RequestContext = { request, response };
 
 		const extensions = (this.context as Context<Extensions>).get('extensions');
 		if (!extensions) throw new Error('Extensions missing');
 
+		const root = this.context.get('root');
+		if (!root) throw new Error('Applicaiton root missing');
+
 		extensions.prepare(this.context);
 		extensions.before(this.context);
 
-		const root = this.context.get('root');
-		const dispatch = this.context.get('dispatch');
+		const { isEndpoint, handler } = dispatch(request.url, root, this.context);
 
-		if (!root) throw new Error('Applicaiton root is missing');
-		if (!dispatch) throw new Error('Application dispatch is missing');
-
-		const endpoint = dispatch(root);
-
-		if (!endpoint) {
+		if (!isEndpoint) {
+			console.log('Dispatch failed, responding with HTTP 404 Not Found');
 			context.response.writeHead(404);
 			context.response.end();
 			return;
@@ -87,7 +90,7 @@ export class Application {
 		let result;
 		try {
 			context.response.setHeader('Context-Type', 'text/plain');
-			result = this.execute(context, endpoint);
+			result = this.execute(context, handler);
 		}
 		catch (error) {
 			console.error(error);
@@ -132,7 +135,7 @@ export class Application {
 	 * Start HTTP server and listen for connections
 	 */
 	public listen(config: AppServerConfig = {}) {
-		const { port = 8080 } = config;
+		const { port } = config;
 
 		const server = http.createServer(this.handle)
 			.on('close', () => {
