@@ -6,7 +6,11 @@ import { ApplicationContext, RequestContext } from './context';
 import { dispatch } from './dispatch';
 import { Extension, Extensions } from './extensions';
 
-export type Endpoint = (context: RequestContext) => any; // Writable chunk = Buffer | string
+export type Endpoint = (args: {
+	context: RequestContext,
+	args?: string[],
+	parameters?: { [key: string]: string }
+}) => any; // Writable chunk = Buffer | string
 
 export interface ApplicationConfig {
 	readonly extensions?: Extension[]
@@ -43,13 +47,37 @@ export class Application {
 		extensions.start(this.context);
 	}
 
+	private parameters = (context: RequestContext) => {
+		const { request: { headers, method }, query = '', body = '' } = context;
+		let parameters = {};
+
+		// 1. Query string values are merged into parameters object
+		if (method === 'GET') {
+			parameters = { ...Querystring.parse(query) };
+		}
+
+		// 2. Form-encoded or MIME multipart arguments are merged into parameters object
+		if (method === 'POST' && headers['content-type'] === 'multipart/form-data') {
+			parameters = { ...parameters, ...Querystring.parse(body) };
+		}
+
+		// 3. JSON-encoded arguments in the request body are merged into parameters object
+		if (headers['content-type'] === 'application/json') {
+			parameters = { ...parameters, ...JSON.parse(body) };
+		}
+
+		return parameters;
+	};
+
 	private execute = (context: RequestContext, endpoint: any) => {
 		// Endpoints can be functions or primitive values that can be cast into strings for a response.
-		const isCallable = endpoint instanceof Function;
-		if (!isCallable) return endpoint; // To be written into response
+		if (!(endpoint instanceof Function)) return endpoint; // To be written into response
 
 		try {
-			return (endpoint as Endpoint)(context);
+			// TODO: Get args from unconsumed path elements
+			const args = [];
+			const parameters = this.parameters(context);
+			return (endpoint as Endpoint)({ context, args, parameters });
 		}
 		catch (error) {
 			console.error('Error thrown while executing endpoint');
@@ -57,36 +85,6 @@ export class Application {
 			throw error;
 		}
 	}
-
-	private arguments = (context: RequestContext) => {
-		// 1. Request context is first positional argument
-		let args: any[] = [ context ];
-
-		// 2. Remaining path elements are the following positional arguments
-		// TODO: Track unconsumed path elements
-
-		const { request: { headers, method }, query = '', body = '' } = context;
-		let parameters = {};
-
-		// 3. Query string values are merged into parameters object
-		if (method === 'GET') {
-			parameters = { ...Querystring.parse(query) };
-		}
-
-		// 4. Form-encoded or MIME multipart arguments are merged into parameters object
-		if (method === 'POST' && headers['content-type'] === 'multipart/form-data') {
-			parameters = { ...parameters, ...Querystring.parse(body) };
-		}
-
-		// 5. JSON-encoded arguments in the request body are merged into parameters object
-		if (headers['content-type'] === 'application/json') {
-			parameters = { ...parameters, ...JSON.parse(body) };
-		}
-
-		args = [ ...args, parameters ];
-
-		console.log(args);
-	};
 
 	private respond = (context: RequestContext) => {
 		const { path, request, response } = context;
@@ -103,7 +101,7 @@ export class Application {
 		extensions.prepare(this.context);
 		extensions.before(this.context);
 
-		const args = this.arguments(context); // TODO: Track unconsumed path elements
+		// NOTE: App dispatch can write remaining path elements into app context
 		const { isEndpoint, handler } = dispatch(path, root, this.context);
 
 		if (!isEndpoint) {
@@ -155,7 +153,7 @@ export class Application {
 				if (!request.url) throw new Error('Request did not provide path');
 
 				const { pathname = '', query } = Url.parse(request.url);
-				const body = Buffer.concat(buffer).toString();
+				const body = Buffer.concat(buffer).toString(); // NOTE: Keep as buffer type?
 
 				const context: RequestContext = {
 					request,
