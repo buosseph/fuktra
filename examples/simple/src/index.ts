@@ -1,6 +1,6 @@
 import { Application, Extension } from '@fuktra/core';
+import { Symbols } from '@fuktra/dispatch';
 
-const root = () => 'Testing';
 const extensions: Extension[] = [
 	{
 		provides: ['example'],
@@ -10,14 +10,23 @@ const extensions: Extension[] = [
 		last: false,
 		excludes: [],
 
-		start: () => console.log('Start signal'),
-		prepare: () => console.log('Prepare signal'),
-		before: () => console.log('Before signal'),
-		run: () => console.log('Run signal'),
-		after: () => console.log('After signal'),
-		stop: () => console.log('Stop signal')
+		start: () => console.log('Configuring extension...'),
+		prepare: context => {
+			const request = context.get('request');
+			console.log(`HTTP ${request.httpVersion} ${request.method} ${request.url}`);
+		},
+		before: () => console.log('Dispatching...'),
+		after: () => console.log('Sending response...')
 	}
 ];
 
+const root = {
+	[Symbols.dispatch]: 'root',
+	foo: {
+		[Symbols.dispatch]: 'foo',
+		bar: () => 'bar'
+	}
+};
+
 const app = new Application(root, { extensions });
-app.listen();
+app.listen({ port: 8888 });
