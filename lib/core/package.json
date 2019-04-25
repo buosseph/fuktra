@@ -1,27 +1,31 @@
 {
-  "name": "@fuktra/core",
-  "version": "0.0.0",
-  "author": "Brian Uosseph <brian.uosseph@gmail.com>",
-  "license": "MIT",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "scripts": {
-    "test": "jest --coverage",
-    "prepare": "tsc -b",
-    "clean:lib": "del lib",
-    "clean": "yarn clean:lib && del node_modules",
-    "start": "ts-node src/index.ts"
-  },
-  "dependencies": {
-    "kuspe": "~0.1.0-alpha.1"
-  },
-  "devDependencies": {
-    "@types/jest": "24.0.9",
-    "@types/node": "11.11.5",
-    "del-cli": "1.1.0",
-    "jest": "24.1.0",
-    "ts-jest": "24.0.0",
-    "ts-node": "8.0.3",
-    "typescript": "3.3.3333"
-  }
+	"name": "@fuktra/core",
+	"version": "0.0.0",
+	"author": "Brian Uosseph <brian.uosseph@gmail.com>",
+	"license": "MIT",
+	"main": "lib/index.js",
+	"types": "lib/index.d.ts",
+	"scripts": {
+		"test": "jest --coverage",
+		"prepare": "tsc -b",
+		"clean:lib": "del lib",
+		"clean": "yarn clean:lib && del node_modules",
+		"start": "ts-node src/index.ts"
+	},
+	"dependencies": {
+		"kuspe": "~0.1.0-alpha.1"
+	},
+	"devDependencies": {
+		"@types/jest": "24.0.9",
+		"@types/node": "11.11.5",
+		"del-cli": "1.1.0",
+		"jest": "24.1.0",
+		"ts-jest": "24.0.0",
+		"ts-node": "8.0.3",
+		"typescript": "3.3.3333"
+	},
+	"jest": {
+		"preset": "ts-jest",
+		"testEnvironment": "node"
+	}
 }
