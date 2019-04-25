@@ -5,7 +5,7 @@
 		"outDir": "build"
 	},
 	"references": [
-		{ "path": "../../lib/core" }
+		{ "path": "../../core" }
 	],
 	"include": [
 		"src"

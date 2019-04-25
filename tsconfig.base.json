@@ -33,7 +33,7 @@
 			"@fuktra/dispatch": ["dispatch/core/src"],
 			"@fuktra/dispatch-object": ["dispatch/object/src"],
 			"@fuktra/dispatch-traversal": ["dispatch/traversal/src"],
-			"@fuktra/core": ["lib/core/src"]
+			"@fuktra/core": ["core/src"]
 		}
 	}
 }
