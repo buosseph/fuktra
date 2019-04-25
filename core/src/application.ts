@@ -75,7 +75,7 @@ export class Application {
 
 		try {
 			// TODO: Get args from unconsumed path elements
-			const args = [];
+			const args: string[] = [];
 			const parameters = this.parameters(context);
 			return (endpoint as Endpoint)({ context, args, parameters });
 		}
@@ -86,7 +86,7 @@ export class Application {
 		}
 	}
 
-	private respond = (context: RequestContext) => {
+	private respond = async (context: RequestContext) => {
 		const { path, request, response } = context;
 
 		this.context.set('request', request);
@@ -98,8 +98,8 @@ export class Application {
 		const root = this.context.get('root');
 		if (!root) throw new Error('Applicaiton root missing');
 
-		extensions.prepare(this.context);
-		extensions.before(this.context);
+		await extensions.prepare(this.context);
+		await extensions.before(this.context);
 
 		// NOTE: App dispatch can write remaining path elements into app context
 		const { isEndpoint, handler } = dispatch(path, root, this.context);
@@ -123,7 +123,7 @@ export class Application {
 			return;
 		}
 
-		extensions.after(this.context);
+		await extensions.after(this.context);
 
 		context.response.writeHead(200);
 		context.response.write(Buffer.isBuffer(result)
@@ -147,7 +147,7 @@ export class Application {
 		request
 			.on('error', error => console.error(error.stack))
 			.on('data', chunk => buffer.push(chunk))
-			.on('end', () => {
+			.on('end', async () => {
 				response.on('error', error => console.error(error.stack));
 
 				if (!request.url) throw new Error('Request did not provide path');
@@ -163,7 +163,7 @@ export class Application {
 					body
 				};
 
-				this.respond(context);
+				await this.respond(context);
 			});
 	};
 

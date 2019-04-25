@@ -3,20 +3,21 @@ import { ExtensionManager, Extension as BaseExtension } from 'kuspe';
 import { Application } from './application';
 import { ApplicationContext } from './context';
 
-export interface Extension extends BaseExtension {
-	start?: (context: ApplicationContext) => void,
-	prepare?: (context: ApplicationContext) => void,
-	before?: (context: ApplicationContext) => void,
-	run?: (context: ApplicationContext) => void,
-	after?: (context: ApplicationContext) => void,
-	stop?: (context: ApplicationContext) => void
-}
-
 export type SignalType = 'start' | 'prepare' | 'before' | 'run' | 'after' | 'stop';
-export type SignalHandler = (context: ApplicationContext) => void;
+export type SignalHandler = (context: ApplicationContext) => void | Promise<void>;
+
+export interface Extension extends BaseExtension {
+	start?: SignalHandler,
+	prepare?: SignalHandler,
+	before?: SignalHandler,
+	run?: SignalHandler,
+	after?: SignalHandler,
+	stop?: SignalHandler
+}
 
 type SignalHandlers = { [Name in SignalType]: SignalHandler[] };
 
+/** All signal handlers are resolved sequentially; meaning any async handlers will block its following handlers */
 export class Extensions extends ExtensionManager<Extension> {
 	/** Supported signals */
 	public static SIGNALS = new Set<SignalType>([
@@ -67,38 +68,42 @@ export class Extensions extends ExtensionManager<Extension> {
 		}
 	}
 
+	// TODO: Test, all promises must resolve sequentially and block following handlers
+	// Look at this: https://gist.github.com/anvk/5602ec398e4fdc521e2bf9940fd90f84
 	public start(context: ApplicationContext) {
-		for (const handler of this.signals.start) {
+		this.signals.start.reduce((promise, handler) => {
+			return promise
+				.then(() => { handler(context); })
+				.catch(console.error);
+		}, Promise.resolve());
+	}
+
+	public async prepare(context: ApplicationContext) {
+		for await (const handler of this.signals.prepare) {
 			handler(context);
 		}
 	}
 
-	public prepare(context: ApplicationContext) {
-		for (const handler of this.signals.prepare) {
+	public async before(context: ApplicationContext) {
+		for await (const handler of this.signals.before) {
 			handler(context);
 		}
 	}
 
-	public before(context: ApplicationContext) {
-		for (const handler of this.signals.before) {
+	public async run(context: ApplicationContext) {
+		for await (const handler of this.signals.run) {
 			handler(context);
 		}
 	}
 
-	public run(context: ApplicationContext) {
-		for (const handler of this.signals.run) {
+	public async after(context: ApplicationContext) {
+		for await (const handler of this.signals.after) {
 			handler(context);
 		}
 	}
 
-	public after(context: ApplicationContext) {
-		for (const handler of this.signals.after) {
-			handler(context);
-		}
-	}
-
-	public stop(context: ApplicationContext) {
-		for (const handler of this.signals.stop) {
+	public async stop(context: ApplicationContext) {
+		for await (const handler of this.signals.stop) {
 			handler(context);
 		}
 	}
