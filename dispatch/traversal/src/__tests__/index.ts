@@ -45,6 +45,14 @@ describe('Given an array', () => {
 	});
 
 	it('resolves insecure path', () => {
+		const result = Array.from(dispatch(path('/length'), ARRAY));
+		expect(result.length).toEqual(1);
+		expect(result[0].path).toEqual(null);
+		expect(result[0].endpoint).toEqual(false);
+		expect(result[0].handler).toEqual(ARRAY);
+	});
+
+	it('resolves insecure path', () => {
 		const result = Array.from(dispatch(path('/0'), ARRAY));
 		expect(result.length).toEqual(2);
 
