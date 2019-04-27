@@ -13,11 +13,13 @@
 		"start": "ts-node src/index.ts"
 	},
 	"dependencies": {
-		"kuspe": "~0.1.0-alpha.1"
+		"kuspe": "~0.1.0-alpha.1",
+		"whatwg-mimetype": "2.3.0"
 	},
 	"devDependencies": {
 		"@types/jest": "24.0.9",
 		"@types/node": "11.11.5",
+		"@types/whatwg-mimetype": "2.1.0",
 		"del-cli": "1.1.0",
 		"jest": "24.1.0",
 		"ts-jest": "24.0.0",
