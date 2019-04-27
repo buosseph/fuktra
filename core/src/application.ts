@@ -1,6 +1,7 @@
 import Http from 'http';
 import Url from 'url';
 import Querystring from 'querystring';
+import MimeType from 'whatwg-mimetype';
 
 import { ApplicationContext, RequestContext } from './context';
 import { dispatch } from './dispatch';
@@ -11,6 +12,40 @@ export type Endpoint = (args: {
 	args?: string[],
 	parameters?: { [key: string]: string }
 }) => any; // Writable chunk = Buffer | string
+
+/** Parses the given `RequestContext` for parameter provided by the query string and request body */
+const parseParameters = (context: RequestContext) => {
+	const { request: { headers, method }, query = '', body = '' } = context;
+	const mime = MimeType.parse(headers['content-type'] || '');
+	let parameters = {};
+
+	// 1. Query string values are merged into parameters object
+	if (method === 'GET') {
+		parameters = { ...Querystring.parse(query) };
+	}
+
+	if (mime === null) { return parameters; }
+
+	// 2. Form-encoded or MIME multipart arguments are merged into parameters object
+	if (
+		method === 'POST'
+		&& [
+			'multipart/form-data',
+			'application/x-www-form-urlencoded',
+			'text/plain'
+		].includes(mime.essence)
+	) {
+		// TODO: Debug multipart/form-data, using curl -F …
+		parameters = { ...parameters, ...Querystring.parse(body) };
+	}
+
+	// 3. JSON-encoded arguments in the request body are merged into parameters object
+	if (mime.essence === 'application/json') {
+		parameters = { ...parameters, ...JSON.parse(body) };
+	}
+
+	return parameters;
+};
 
 export interface ApplicationConfig {
 	readonly extensions?: Extension[]
@@ -47,28 +82,6 @@ export class Application {
 		extensions.start(this.context);
 	}
 
-	private parameters = (context: RequestContext) => {
-		const { request: { headers, method }, query = '', body = '' } = context;
-		let parameters = {};
-
-		// 1. Query string values are merged into parameters object
-		if (method === 'GET') {
-			parameters = { ...Querystring.parse(query) };
-		}
-
-		// 2. Form-encoded or MIME multipart arguments are merged into parameters object
-		if (method === 'POST' && headers['content-type'] === 'multipart/form-data') {
-			parameters = { ...parameters, ...Querystring.parse(body) };
-		}
-
-		// 3. JSON-encoded arguments in the request body are merged into parameters object
-		if (headers['content-type'] === 'application/json') {
-			parameters = { ...parameters, ...JSON.parse(body) };
-		}
-
-		return parameters;
-	};
-
 	private execute = (context: RequestContext, endpoint: any) => {
 		// Endpoints can be functions or primitive values that can be cast into strings for a response.
 		if (!(endpoint instanceof Function)) return endpoint; // To be written into response
@@ -76,7 +89,7 @@ export class Application {
 		try {
 			// TODO: Get args from unconsumed path elements
 			const args: string[] = [];
-			const parameters = this.parameters(context);
+			const parameters = parseParameters(context);
 			return (endpoint as Endpoint)({ context, args, parameters });
 		}
 		catch (error) {
