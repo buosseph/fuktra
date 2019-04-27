@@ -19,6 +19,8 @@ const parseParameters = (context: RequestContext) => {
 	const mime = MimeType.parse(headers['content-type'] || '');
 	let parameters = {};
 
+	// TODO: Update querystring paring to support arrays and objects
+
 	// 1. Query string values are merged into parameters object
 	if (method === 'GET') {
 		parameters = { ...Querystring.parse(query) };
